@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Автозапуск бота на macOS.
+  1. Замените ПУТЬ на реальный путь к папке проекта.
+  2. Скопируйте как ~/Library/LaunchAgents/ru.spiderman.checker.plist
+  3. launchctl load ~/Library/LaunchAgents/ru.spiderman.checker.plist
+  Остановить: launchctl unload ~/Library/LaunchAgents/ru.spiderman.checker.plist
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ru.spiderman.checker</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/ПУТЬ/spiderman-checker/run.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/ПУТЬ/spiderman-checker</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/ПУТЬ/spiderman-checker/data/launchd.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/ПУТЬ/spiderman-checker/data/launchd.err.log</string>
+</dict>
+</plist>
