@@ -41,7 +41,7 @@ NEW_FILM_DIGEST = os.environ.get("NEW_FILM_DIGEST", "1") not in ("0", "false", "
 # Таймаут HTTP-запросов к сайтам кинотеатров.
 HTTP_TIMEOUT = int(os.environ.get("HTTP_TIMEOUT", "30"))
 
-# Кому слать технические ошибки (0 — всем подписчикам).
+# Кому слать технические ошибки (0 значит всем подписчикам).
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0") or 0)
 
 # Отслеживаемые площадки.

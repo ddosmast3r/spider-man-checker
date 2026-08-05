@@ -58,7 +58,7 @@ class CheckReport:
 
     @property
     def hot(self) -> bool:
-        """Цель уже в афише — значит, проверяем чаще, чтобы не проспать билеты."""
+        """Цель уже в афише, значит проверяем чаще, чтобы не проспать билеты."""
         return bool(self.hot_targets)
 
 
@@ -85,7 +85,7 @@ def check_site(site_key: str, store: Storage, report: CheckReport) -> None:
 
     keywords = store.keywords
     seen: set = set()
-    newcomers: List[Film] = []  # новые посторонние фильмы — только для тихой сводки
+    newcomers: List[Film] = []  # новые посторонние фильмы, только для тихой сводки
 
     for film in snapshot.films:
         seen.add(film.uuid)
@@ -123,7 +123,7 @@ def check_site(site_key: str, store: Storage, report: CheckReport) -> None:
             ):
                 tickets_change = "more_shows"
         if film.show_count == 0:
-            # Билеты пропали — при следующем появлении сообщим заново.
+            # Билеты пропали, при следующем появлении сообщим заново.
             store.clear_tickets(film.key)
 
         known[film.uuid] = film.snapshot()
@@ -171,7 +171,7 @@ def check_site(site_key: str, store: Storage, report: CheckReport) -> None:
             f"({len(newcomers)}), на цель не похожи: {names}."
         )
 
-    # Пропавшие из афиши — сообщаем только про подтверждённых кандидатов.
+    # Пропавшие из афиши: сообщаем только про подтверждённых кандидатов.
     for uuid in list(known.keys()):
         if uuid in seen:
             continue
@@ -183,7 +183,7 @@ def check_site(site_key: str, store: Storage, report: CheckReport) -> None:
                 f"«{notifier.escape(site_name)}»."
             )
 
-    # Запасной скан сырой страницы — на случай анонса вне расписания.
+    # Запасной скан сырой страницы, на случай анонса вне расписания.
     for snippet in matcher.scan_raw_html(snapshot.html):
         digest = _digest(snippet)
         if store.seen_raw_hit(digest):
@@ -217,7 +217,7 @@ def run_check(store: Storage) -> CheckReport:
 
 
 def find_candidates(store: Storage, films_by_site: Dict[str, List[Film]]) -> List[tuple]:
-    """Все фильмы с ненулевой оценкой — для команды /candidates."""
+    """Все фильмы с ненулевой оценкой, для команды /candidates."""
     out = []
     for films in films_by_site.values():
         for film in films:

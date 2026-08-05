@@ -41,14 +41,14 @@ FAKES = [
         "text": "Фантастический боевик, США, 2026.",
         "cast": ["Том Холланд", "Джейкоб Баталон"],
         "director": [],
-        "expect": "high",  # «паутина» — примета франшизы, плюс двое из каста
+        "expect": "high",  # «паутина» это примета франшизы, плюс двое из каста
     },
     {
         "name": "Одиссея",  # ловушка: у Нолана снимаются те же Холланд и Зендея
         "text": "Эпос по поэме Гомера.",
         "cast": ["Том Холланд", "Зендея", "Мэтт Дэймон"],
         "director": ["Кристофер Нолан"],
-        "expect": "none",  # знакомый состав без примет франшизы — не наш фильм
+        "expect": "none",  # знакомый состав без примет франшизы, не наш фильм
     },
     {
         "name": "Хороший день",  # «день» есть, но никаких примет франшизы
@@ -58,14 +58,14 @@ FAKES = [
         "expect": "none",
     },
     {
-        "name": "Новый день",  # то же название, но с Креттоном — это уже он
+        "name": "Новый день",  # то же название, но с Креттоном, это уже он
         "text": "Приключенческий боевик о супергерое из Нью-Йорка.",
         "cast": ["Том Холланд", "Зендея"],
         "director": ["Дестин Креттон"],
         "expect": "high",
     },
     {
-        "name": "Человек-паук: Через вселенные",  # старый мультфильм — не цель
+        "name": "Человек-паук: Через вселенные",  # старый мультфильм, не цель
         "text": "Майлз Моралес и мультивселенная.",
         "cast": [],
         "director": [],
@@ -113,7 +113,7 @@ def test_matcher() -> int:
             f"ожидалось: {fake['expect']}"
         )
         if not ok:
-            print(f"    признаки: {'; '.join(result.reasons) or '—'}")
+            print(f"    признаки: {'; '.join(result.reasons) or 'нет'}")
     return failures
 
 
@@ -124,7 +124,7 @@ def test_sites() -> int:
         try:
             snapshot = fetch_site(site_key)
         except Exception as exc:
-            print(f"✗ {site['name']}: {type(exc).__name__} — {exc}")
+            print(f"✗ {site['name']}: {type(exc).__name__}: {exc}")
             failures += 1
             continue
         print(f"✓ {site['name']}: {len(snapshot.films)} фильмов")
@@ -132,7 +132,7 @@ def test_sites() -> int:
             price = f", от {film.min_price} ₽" if film.min_price else ""
             verdict = matcher.match(film)
             flag = f"  {verdict.emoji} {verdict.level}" if verdict.is_candidate else ""
-            print(f"    • {film.name} — {film.show_count} сеанс.{price}{flag}")
+            print(f"    • {film.name}, {film.show_count} сеанс.{price}{flag}")
         if len(snapshot.films) > 5:
             print(f"    … ещё {len(snapshot.films) - 5}")
 

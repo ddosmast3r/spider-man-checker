@@ -159,10 +159,10 @@ class Bot:
             delay = config.CHECK_INTERVAL
             try:
                 report = self.do_check()
-                # Цель уже в афише — переходим на частые проверки: билеты разбирают быстро.
+                # Цель уже в афише, переходим на частые проверки: билеты разбирают быстро.
                 if report.hot:
                     delay = config.CHECK_INTERVAL_HOT
-                    log.info("цель в афише (%s) — проверяю каждые %s с", report.hot_targets, delay)
+                    log.info("цель в афише (%s), проверяю каждые %s с", report.hot_targets, delay)
             except Exception as exc:  # цикл не должен умирать
                 log.exception("ошибка цикла проверки")
                 self.notify_admin(f"⚠️ <b>Сбой проверки</b>\n{escape(str(exc))}")

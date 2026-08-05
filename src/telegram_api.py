@@ -33,14 +33,14 @@ class Telegram:
         self.session = requests.Session()
 
     def call(self, method: str, _http_timeout: int = 30, **params: Any) -> Any:
-        """Вызов метода API. `_http_timeout` — таймаут сокета, остальное уходит в тело запроса."""
+        """Вызов метода API. `_http_timeout` задаёт таймаут сокета, остальное уходит в тело запроса."""
         url = f"{self.base}/{method}"
         for attempt in range(3):
             try:
                 response = self.session.post(url, json=params, timeout=_http_timeout)
                 data = response.json()
             except (requests.RequestException, ValueError) as exc:
-                log.warning("%s: сеть — %s (попытка %s)", method, exc, attempt + 1)
+                log.warning("%s: сеть, ошибка %s (попытка %s)", method, exc, attempt + 1)
                 time.sleep(2 * (attempt + 1))
                 continue
             if data.get("ok"):
@@ -51,7 +51,7 @@ class Telegram:
                 log.warning("%s: лимит, ждём %ss", method, retry_after)
                 time.sleep(retry_after + 1)
                 continue
-            # 403 — пользователь заблокировал бота; это не повод падать.
+            # 403 значит, что пользователь заблокировал бота; это не повод падать.
             if response.status_code in (400, 403):
                 raise TelegramError(description)
             log.warning("%s: %s", method, description)
