@@ -69,6 +69,7 @@ def reply_keyboard() -> Dict[str, Any]:
     return {
         "keyboard": [
             [{"text": "🕷 Проверить Паука"}, {"text": "⚙️ Статус"}],
+            [{"text": "🖥 Состояние платы"}],
         ],
         "resize_keyboard": True,
     }
@@ -252,4 +253,96 @@ def format_raw_hit(site_name: str, url: str, snippets: List[str]) -> str:
         lines.append(f"<blockquote>…{escape(snippet[:250])}…</blockquote>")
     lines.append("")
     lines.append(link(url, "Открыть сайт"))
+    return "\n".join(lines)
+
+
+# --- состояние машины ------------------------------------------------------
+
+UNIT_ICONS = {"active": "🟢", "activating": "🟡", "inactive": "⚪️", "failed": "🔴"}
+
+UNIT_LABELS = {
+    "spider-checker": "Бот",
+    "awg-quick@awg0": "VPN-туннель",
+    "uptime-kuma": "Uptime Kuma",
+}
+
+
+def _temp_icon(celsius: float) -> str:
+    if celsius >= 75:
+        return "🔥"
+    if celsius >= 60:
+        return "🌡"
+    return "❄️"
+
+
+def format_health(data: Dict[str, Any]) -> str:
+    """Отчёт о состоянии машины для команды /health."""
+    from src import health
+
+    lines = ["🖥 <b>Состояние платы</b>", ""]
+    lines.append(_row("📛", "Хост", escape(str(data.get("hostname") or "?"))))
+
+    temp = data.get("temp")
+    if temp is not None:
+        lines.append(_row(_temp_icon(temp), "Температура", f"{temp:.1f} °C"))
+
+    mem = data.get("memory")
+    if mem:
+        used_pct = round(mem["used"] * 100 / mem["total"])
+        lines.append(_row(
+            "🧠", "Память",
+            f"{health.human_bytes(mem['used'] * 1024)} из "
+            f"{health.human_bytes(mem['total'] * 1024)} ({used_pct}%)",
+        ))
+
+    disk = data.get("disk")
+    if disk:
+        used_pct = round(disk["used"] * 100 / disk["total"])
+        lines.append(_row(
+            "💾", "Диск",
+            f"{health.human_bytes(disk['used'])} из "
+            f"{health.human_bytes(disk['total'])} ({used_pct}%), "
+            f"свободно {health.human_bytes(disk['free'])}",
+        ))
+
+    load = data.get("load")
+    if load:
+        lines.append(_row("📈", "Нагрузка", ", ".join(f"{v:.2f}" for v in load)))
+
+    uptime = data.get("uptime")
+    if uptime is not None:
+        lines.append(_row("⏳", "Аптайм", health.human_duration(uptime)))
+
+    lines.append("")
+    lines.append(_row("🏠", "Локальный IP", escape(str(data.get("local_ip") or "неизвестен"))))
+    lines.append(_row("🌍", "Внешний IP", escape(str(data.get("public_ip") or "не определился"))))
+
+    vpn = data.get("vpn") or {}
+    if vpn.get("up"):
+        traffic = ""
+        if vpn.get("rx") is not None and vpn.get("tx") is not None:
+            traffic = (f", принято {health.human_bytes(vpn['rx'])}, "
+                       f"отдано {health.human_bytes(vpn['tx'])}")
+        vpn_value = f"поднят ({escape(str(vpn.get('interface')))}){traffic}"
+        vpn_icon = "🔒"
+    else:
+        vpn_value = "не поднят"
+        vpn_icon = "🔓"
+    lines.append(_row(vpn_icon, "VPN", vpn_value))
+    # Подпись зависит от того, есть ли туннель: иначе строка вводила бы в заблуждение.
+    route = "через туннель" if vpn.get("up") else "напрямую"
+    lines.append(_row(
+        "📨", f"Telegram API ({route})",
+        "отвечает" if vpn.get("telegram") else "недоступен",
+    ))
+
+    units = data.get("units") or {}
+    if units:
+        lines.append("")
+        lines.append("⚙️ <b>Сервисы:</b>")
+        for unit, state in units.items():
+            icon = UNIT_ICONS.get(state, "❔")
+            label = UNIT_LABELS.get(unit, unit)
+            lines.append(f"{icon} {escape(label)}: {escape(state)}")
+
     return "\n".join(lines)

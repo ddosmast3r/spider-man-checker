@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import config
-from src import checker, notifier
+from src import checker, health, notifier
 from src.checker import CheckReport
 from src.parser import Film
 from src.storage import Storage
@@ -33,6 +33,7 @@ NEW_FILM_DIGEST=0.
 <b>Команды</b>
 /check: проверить оба сайта прямо сейчас
 /status: что известно про цель и когда была проверка
+/health: состояние платы, температура, память, диск, IP и VPN
 /candidates: подробные карточки совпадений
 /list: вся афиша целиком
 /watch слово: добавить своё ключевое слово
@@ -57,6 +58,7 @@ COMMAND_LIST = [
     {"command": "list", "description": "Вся афиша целиком"},
     {"command": "keywords", "description": "Свои ключевые слова"},
     {"command": "status", "description": "Статистика и последняя проверка"},
+    {"command": "health", "description": "Состояние платы: температура, память, VPN"},
     {"command": "help", "description": "Справка"},
     {"command": "stop", "description": "Отписаться"},
 ]
@@ -66,6 +68,8 @@ BUTTON_ALIASES = {
     "проверить паука": "/check",
     "⚙️ статус": "/status",
     "статус": "/status",
+    "🖥 состояние платы": "/health",
+    "состояние платы": "/health",
 }
 
 
@@ -285,6 +289,21 @@ class Bot:
             lines.append(f"⚠️ <b>Последняя ошибка:</b> {escape(state['last_error'])}")
         self.tg.send_message(chat_id, "\n".join(lines), keyboard=notifier.reply_keyboard())
 
+    def cmd_health(self, chat_id: int) -> None:
+        """Состояние машины, на которой крутится бот."""
+        try:
+            data = health.snapshot()
+        except Exception as exc:  # метрики не должны ронять бота
+            log.exception("не удалось собрать метрики")
+            self.tg.send_message(
+                chat_id,
+                f"⚠️ Не удалось собрать состояние: {escape(str(exc))}",
+                keyboard=notifier.reply_keyboard(),
+            )
+            return
+        self.tg.send_message(chat_id, notifier.format_health(data),
+                             keyboard=notifier.reply_keyboard())
+
     # --- маршрутизация ------------------------------------------------------
     def handle_message(self, message: Dict[str, Any]) -> None:
         chat_id = message["chat"]["id"]
@@ -311,6 +330,7 @@ class Bot:
             "/keywords": lambda: self.cmd_keywords(chat_id),
             "/unmute": lambda: self.cmd_unmute(chat_id),
             "/status": lambda: self.cmd_status(chat_id),
+            "/health": lambda: self.cmd_health(chat_id),
             "/stop": lambda: self.cmd_stop(chat_id),
         }
         handler = handlers.get(command)
